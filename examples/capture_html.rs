@@ -18,11 +18,11 @@ async fn main() -> Result<()> {
 
     let base64 = browser.capture_html(HTML, "html").await?;
 
-    let png_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
+    let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
 
     let dir = std::env::current_dir()?.join("cache");
     fs::create_dir_all(&dir)?;
-    fs::write(dir.join("test0.png"), png_data)?;
+    fs::write(dir.join("test0.jpeg"), img_data)?;
 
     Ok(())
 }

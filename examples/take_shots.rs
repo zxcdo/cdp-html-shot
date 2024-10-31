@@ -10,11 +10,11 @@ async fn take_screenshot(tab: Tab, filename: &str) -> Result<()> {
     let element = tab.find_element("#title_and_result").await?;
     let base64 = element.screenshot().await?;
     tab.close().await?;
-    let png_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
+    let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
 
     let dir = std::env::current_dir()?.join("cache");
     fs::create_dir_all(&dir)?;
-    fs::write(dir.join(filename), png_data)?;
+    fs::write(dir.join(filename), img_data)?;
     Ok(())
 }
 
@@ -32,12 +32,12 @@ async fn main() -> Result<()> {
     )?;
 
     let screenshot_tasks = vec![
-        take_screenshot(tab1, "test1.png"),
-        take_screenshot(tab2, "test2.png"),
-        take_screenshot(tab3, "test3.png"),
-        take_screenshot(tab4, "test4.png"),
-        take_screenshot(tab5, "test5.png"),
-        take_screenshot(tab6, "test6.png"),
+        take_screenshot(tab1, "test1.jpeg"),
+        take_screenshot(tab2, "test2.jpeg"),
+        take_screenshot(tab3, "test3.jpeg"),
+        take_screenshot(tab4, "test4.jpeg"),
+        take_screenshot(tab5, "test5.jpeg"),
+        take_screenshot(tab6, "test6.jpeg"),
     ];
 
     try_join_all(screenshot_tasks).await?;
@@ -199,13 +199,7 @@ const HTML: &str = r#"<!DOCTYPE html>
 <body>
 <div id="main-container">
     <div id="main">
-        <div id="title_and_result" class="mb-3"> <div class="shindanTitleImageContainer"> <a class="text-white text-decoration-none" href="https://en.shindanmaker.com/1222992"><script style="display:none" type="text/javascript">
-//<![CDATA[
-window.__mirage2 = {petok:"wBMAbLzqtFkjHaXCkXwyzzaFyN4uX30DDjryDW4zBFI-1800-0.0.1.1"};
-//]]>
-</script>
-<script type="text/javascript" src="https://ajax.cloudflare.com/cdn-cgi/scripts/04b3eb47/cloudflare-static/mirage2.min.js"></script>
-<img style="display:none;visibility:hidden;" height="504" width="960" data-cfsrc="https://pic.shindanmaker.com/shindantitle/1222992/img/4794e1bce8123c8d2ff471a83dd9f864faeecf73_head.jpg?v=29b73e9b4f83a70299f4ef6a27bea9894310566a" class="img-fluid" alt="Reincarnation."><noscript>&lt;img src="https://pic.shindanmaker.com/shindantitle/1222992/img/4794e1bce8123c8d2ff471a83dd9f864faeecf73_head.jpg?v=29b73e9b4f83a70299f4ef6a27bea9894310566a" alt="Reincarnation." class="img-fluid" width="960" height="504"&gt;</noscript></a> </div> <div id="shindanResultBlock" data-shindan_title_image="https://pic.shindanmaker.com/shindantitle/1222992/img/4794e1bce8123c8d2ff471a83dd9f864faeecf73_head.jpg?v=29b73e9b4f83a70299f4ef6a27bea9894310566a" class="mx-0" name="shindanResultBlock"> <span class="d-block text-center text-nowrap overflow-hidden font-weight-bold px-2 mb-0" id="shindanResultTitle"> <span id="shindanResultTitleText" class="d-block py-3 py-sm-4"> Diagnosis results </span> </span> <span class="d-block" id="shindanResultContainer"> <span id="shindanResultHeight"> <span id="shindanResultCell"> <span class="d-block py-4 px-3 px-sm-4 text-break text-center " id="shindanResultContent"> <span id="shindanResult" class="text-left d-inline-block"><span style="font-family:'Righteous';font-size:1em;line-height:1.4em;color:#202020 !important;"><span class="shindanResult_name">test_user</span>'s Character Stats</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#4d4d4d !important;">Class Type:</span>&nbsp;<span style="color:#e5989b !important;font-weight:bold;">Guardian</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Strength:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">B</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Agility:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">SS</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Speed:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">Heroic</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Stamina:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">E</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Defence:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">B</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Magic Power:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">C</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Aspect Control:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">SS</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Luck:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">SSS</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#4d4d4d !important;">Aspect:</span>&nbsp;<span style="color:#e5989b !important;font-weight:bold;">Nature/Infinity</span></span> </span> </span> </span> </span> </div></div>
+        <div id="title_and_result" class="mb-3"> <div class="shindanTitleImageContainer"> <a href="https://en.shindanmaker.com/1222992" class="text-white text-decoration-none"><img src="https://pic.shindanmaker.com/shindantitle/1222992/img/4794e1bce8123c8d2ff471a83dd9f864faeecf73_head.jpg?v=aa7ed40903852b16343f01f2f3547a393a8e6408" width="960" height="504" class="img-fluid" alt="Fantasy Stats"></a> </div> <div id="shindanResultBlock" name="shindanResultBlock" class="mx-0" data-shindan_title_image="https://pic.shindanmaker.com/shindantitle/1222992/img/4794e1bce8123c8d2ff471a83dd9f864faeecf73_head.jpg?v=aa7ed40903852b16343f01f2f3547a393a8e6408"> <span id="shindanResultTitle" class="d-block text-center text-nowrap overflow-hidden font-weight-bold px-2 mb-0"> <span id="shindanResultTitleText" class="d-block py-3 py-sm-4"> Diagnosis results </span> </span> <span class="d-block" id="shindanResultContainer"> <span id="shindanResultHeight"> <span id="shindanResultCell"> <span id="shindanResultContent" class="d-block py-4 px-3 px-sm-4 text-break text-center "> <span class="text-left d-inline-block" id="shindanResult"><span style="font-family:'Righteous';font-size:1em;line-height:1.4em;color:#202020 !important;"><span class="shindanResult_name">test_user</span>'s Character Stats</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#4d4d4d !important;">Class Type:</span>&nbsp;<span style="color:#e5989b !important;font-weight:bold;">Guardian</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Strength:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">B</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Agility:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">E</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Speed:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">A</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Stamina:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">A</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Defence:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">B</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Magic Power:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">Godlike</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Aspect Control:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">A</span><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#202020 !important;">Luck:</span>&nbsp;<span style="color:#ffd100 !important;font-weight:bold;">B</span><br><br><span style="font-family:'Bungee';font-size:0.8em;line-height:1.4em;color:#4d4d4d !important;">Aspect:</span>&nbsp;<span style="color:#e5989b !important;font-weight:bold;">Nature/Infinity</span></span> </span> </span> </span> </span> </div></div>
     </div>
 </div>
 </body>

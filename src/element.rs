@@ -1,8 +1,25 @@
-use crate::tab::Tab;
 use serde_json::json;
-use crate::general_utils;
 use anyhow::{Context, Result};
+
+use crate::tab::Tab;
+use crate::general_utils;
 use crate::general_utils::next_id;
+
+/// Represents screenshot configuration parameters
+#[derive(Debug)]
+struct ScreenshotConfig {
+    format: &'static str,
+    quality: Option<u8>,
+}
+
+impl Default for ScreenshotConfig {
+    fn default() -> Self {
+        Self {
+            format: "png",
+            quality: None,
+        }
+    }
+}
 
 /// An element instance.
 pub struct Element<'a> {
@@ -93,27 +110,8 @@ impl<'a> Element<'a> {
         })
     }
 
-    /**
-    Capture a screenshot of the element.
-
-    # Example
-    ```no_run
-    use cdp_html_shot::Browser;
-    use anyhow::Result;
-
-    #[tokio::main]
-    async fn main() -> Result<()> {
-        let browser = Browser::new().await?;
-        let tab = browser.new_tab().await?;
-        tab.set_content("<h1>Hello world!</h1>").await?;
-        let element = tab.find_element("h1").await?;
-        let base64 = element.screenshot().await?;
-        tab.close().await?;
-        Ok(())
-    }
-    ```
-    */
-    pub async fn screenshot(&self) -> Result<String> {
+    /// Get the box model dimensions for an element
+    async fn get_box_model_dimensions(&self) -> Result<(f64, f64, f64, f64)> {
         let msg_id = next_id();
         let msg = json!({
             "id": msg_id,
@@ -123,37 +121,65 @@ impl<'a> Element<'a> {
             }
         }).to_string();
 
-        let res = general_utils::send_and_get_msg(self.parent.transport.clone(), msg_id, &self.parent.session_id, msg).await?;
+        let res = general_utils::send_and_get_msg(
+            self.parent.transport.clone(),
+            msg_id,
+            &self.parent.session_id,
+            msg
+        ).await?;
 
         let msg = general_utils::serde_msg(&res);
         let model = msg["result"]
             .get("model")
             .context("Failed to get model")?;
 
-        let top_left_x = model["border"][0].as_f64().unwrap();
-        let top_left_y = model["border"][1].as_f64().unwrap();
-        let top_right_x = model["border"][2].as_f64().unwrap();
-        let bottom_left_y = model["border"][5].as_f64().unwrap();
+        Ok((
+            model["border"][0].as_f64().unwrap(), // top_left_x
+            model["border"][1].as_f64().unwrap(), // top_left_y
+            model["border"][2].as_f64().unwrap(), // top_right_x
+            model["border"][5].as_f64().unwrap()  // bottom_left_y
+        ))
+    }
+
+    /// Take a screenshot with the given configuration
+    async fn take_screenshot_with_config(&self, config: ScreenshotConfig) -> Result<String> {
+        let (top_left_x, top_left_y, top_right_x, bottom_left_y) =
+            self.get_box_model_dimensions().await?;
+
+        let mut params = json!({
+            "format": config.format,
+            "clip": {
+                "x": top_left_x,
+                "y": top_left_y,
+                "width": top_right_x - top_left_x,
+                "height": bottom_left_y - top_left_y,
+                "scale": 1.0
+            },
+            "fromSurface": true,
+            "captureBeyondViewport": true,
+        });
+
+        // Add quality parameter only for JPEG format
+        if config.format == "jpeg" {
+            if let Some(quality) = config.quality {
+                params["quality"] = json!(quality);
+            }
+        }
 
         let msg_id = next_id();
         let msg = json!({
             "id": msg_id,
             "method": "Page.captureScreenshot",
-            "params": {
-                "clip": {
-                    "x": top_left_x,
-                    "y": top_left_y,
-                    "width": top_right_x - top_left_x,
-                    "height": bottom_left_y - top_left_y,
-                    "scale": 1.0
-                },
-                "fromSurface": true,
-                "captureBeyondViewport": true,
-            }
+            "params": params
         }).to_string();
 
         self.parent.activate().await?;
-        let res = general_utils::send_and_get_msg(self.parent.transport.clone(), msg_id, &self.parent.session_id, msg).await?;
+        let res = general_utils::send_and_get_msg(
+            self.parent.transport.clone(),
+            msg_id,
+            &self.parent.session_id,
+            msg
+        ).await?;
 
         let msg = general_utils::serde_msg(&res);
         let base64 = msg["result"]
@@ -164,5 +190,18 @@ impl<'a> Element<'a> {
             .to_string();
 
         Ok(base64)
+    }
+
+    /// Capture a screenshot of the element in JPEG format
+    pub async fn screenshot(&self) -> Result<String> {
+        self.take_screenshot_with_config(ScreenshotConfig {
+            format: "jpeg",
+            quality: Some(90),
+        }).await
+    }
+
+    /// Capture a raw screenshot of the element in PNG format
+    pub async fn raw_screenshot(&self) -> Result<String> {
+        self.take_screenshot_with_config(ScreenshotConfig::default()).await
     }
 }

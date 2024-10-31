@@ -3,9 +3,10 @@ use which::which;
 use winreg::RegKey;
 use std::path::{Path, PathBuf};
 use rand::prelude::SliceRandom;
-use crate::temp_dir::CustomTempDir;
 use winreg::enums::HKEY_LOCAL_MACHINE;
 use anyhow::{anyhow, Context, Result};
+
+use crate::browser::temp_dir::CustomTempDir;
 
 static DEFAULT_ARGS: [&str; 37] = [
     // System Settings
@@ -92,9 +93,7 @@ impl BrowserConfig {
         ];
 
         args.extend(DEFAULT_ARGS.iter().map(|s| s.to_string()));
-        if !self.headless {
-            args.push("--auto-open-devtools-for-tabs".to_string());
-        } else {
+        if self.headless {
             args.push("--headless".to_string());
         }
 

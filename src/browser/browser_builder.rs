@@ -1,5 +1,6 @@
-use crate::Browser;
 use anyhow::Result;
+
+use crate::Browser;
 use crate::browser::browser_config::BrowserConfig;
 
 /// Builder for configuring and creating Browser instances

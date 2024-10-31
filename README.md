@@ -40,8 +40,8 @@ async fn main() -> Result<()> {
     let browser = Browser::new().await?;
     let base64 = browser.capture_html(HTML, "html").await?;
 
-    let png_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
-    std::fs::write("test0.png", png_data)?;
+    let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
+    std::fs::write("test0.jpeg", img_data)?;
 
     Ok(())
 }
@@ -65,8 +65,8 @@ async fn main() -> Result<()> {
     let base64 = element.screenshot().await?;
     tab.close().await?;
 
-    let png_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
-    std::fs::write("test0.png", png_data)?;
+    let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
+    std::fs::write("test0.jpeg", img_data)?;
 
     Ok(())
 }

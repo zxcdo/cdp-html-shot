@@ -1,8 +1,9 @@
 use std::sync::Arc;
 use serde_json::json;
+use anyhow::{Context, Result};
+
 use crate::general_utils;
 use crate::element::Element;
-use anyhow::{Context, Result};
 use crate::transport::Transport;
 use crate::general_utils::next_id;
 use crate::transport_actor::TransportResponse;
@@ -92,17 +93,13 @@ impl Tab {
         document.close();
 
         return new Promise((resolve, reject) => {{
-            let checkLoadInterval = setInterval(() => {{
-                if (document.readyState === 'complete') {{
-                    clearInterval(checkLoadInterval);
-                    resolve('Page loaded successfully');
-                }}
-            }}, 10);
+            window.addEventListener('load', () => {{
+                requestAnimationFrame(() => {{
+                    requestAnimationFrame(() => resolve('Page loaded successfully'));
+                }});
+            }});
 
-            setTimeout(() => {{
-                clearInterval(checkLoadInterval);
-                reject('Timeout reached while waiting for page to load');
-            }}, 30000);
+            setTimeout(() => reject('Timeout'), 30000);
         }});
     }})();"#, content);
 
@@ -112,7 +109,8 @@ impl Tab {
             "method": "Runtime.evaluate",
             "params": {
                 "expression": expression,
-                "awaitPromise": true
+                "awaitPromise": true,
+                "returnByValue": true
             }
         }).to_string();
 

@@ -2,6 +2,7 @@ use regex::Regex;
 use anyhow::{Context, Result};
 use std::io::{BufRead, BufReader};
 use std::process::{ChildStderr, Command, Stdio};
+
 use crate::browser::browser_config::BrowserConfig;
 
 pub(crate) fn spawn_chrome_process(config: &BrowserConfig) -> Result<std::process::Child> {

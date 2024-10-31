@@ -1,16 +1,19 @@
+mod temp_dir;
 mod browser_utils;
 mod browser_config;
 mod browser_builder;
 
 use log::error;
 use std::sync::Arc;
-use crate::tab::Tab;
 use std::process::Child;
 use tokio::sync::OnceCell;
 use anyhow::{Context, Result};
-use crate::transport::Transport;
 use browser_config::BrowserConfig;
-use crate::temp_dir::CustomTempDir;
+
+use crate::tab::Tab;
+use crate::CaptureOptions;
+use temp_dir::CustomTempDir;
+use crate::transport::Transport;
 use crate::browser::browser_builder::BrowserBuilder;
 
 /// The global browser instance.
@@ -90,24 +93,11 @@ impl Browser {
     }
 
     /**
-    Capture a screenshot of an HTML element.
+    Basic version: Capture a screenshot of an HTML element
 
     # Arguments
-    - `html`: The HTML content.
-    - `selector`: The CSS selector of the element to capture.
-
-    # Example
-    ```no_run
-    use cdp_html_shot::Browser;
-    use anyhow::Result;
-
-    #[tokio::main]
-    async fn main() -> Result<()> {
-        let browser = Browser::new().await?;
-        let base64 = browser.capture_html("<h1>Hello world!</h1>", "h1").await?;
-        Ok(())
-    }
-    ```
+    - `html`: The HTML content
+    - `selector`: The CSS selector of the element to capture
     */
     pub async fn capture_html(&self, html: &str, selector: &str) -> Result<String> {
         let tab = self.new_tab().await?;
@@ -115,6 +105,58 @@ impl Browser {
         let element = tab.find_element(selector).await?;
         let base64 = element.screenshot().await?;
         tab.close().await?;
+        Ok(base64)
+    }
+
+    /**
+    Advanced version: Capture a screenshot of an HTML element with additional options
+
+    # Arguments
+    - `html`: The HTML content
+    - `selector`: The CSS selector of the element to capture
+    - `options`: Configuration options for the capture
+
+    # Example
+    ```no_run
+    use cdp_html_shot::{Browser, CaptureOptions};
+    use anyhow::Result;
+
+    #[tokio::main]
+    async fn main() -> Result<()> {
+        let browser = Browser::new().await?;
+        let options = CaptureOptions::new()
+            .with_raw_png(true);
+
+        let base64 = browser
+            .capture_html_with_options(
+                "<h1>Hello world!</h1>",
+                "h1",
+                options
+            ).await?;
+        Ok(())
+    }
+    ```
+    */
+    pub async fn capture_html_with_options(
+        &self,
+        html: &str,
+        selector: &str,
+        options: CaptureOptions,
+    ) -> Result<String> {
+        let tab = self.new_tab().await?;
+
+        tab.set_content(html).await?;
+
+        let element = tab.find_element(selector).await?;
+
+        let base64 = if options.raw_png {
+            element.raw_screenshot().await?
+        } else {
+            element.screenshot().await?
+        };
+
+        tab.close().await?;
+
         Ok(base64)
     }
 
