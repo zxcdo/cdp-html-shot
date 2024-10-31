@@ -93,11 +93,30 @@ impl Browser {
     }
 
     /**
-    Basic version: Capture a screenshot of an HTML element
+    Basic version: Capture a screenshot of an HTML element.
+
+    Returns the base64-encoded image data (JPEG format).
+
+    If you need more control over the capture process, use [`capture_html_with_options`].
 
     # Arguments
     - `html`: The HTML content
     - `selector`: The CSS selector of the element to capture
+
+    [`capture_html_with_options`]: struct.Browser.html#method.capture_html_with_options
+
+    # Example
+    ```no_run
+    use cdp_html_shot::Browser;
+    use anyhow::Result;
+
+    #[tokio::main]
+    async fn main() -> Result<()> {
+        let browser = Browser::new().await?;
+        let base64 = browser.capture_html("<h1>Hello world!</h1>", "h1").await?;
+        Ok(())
+    }
+    ```
     */
     pub async fn capture_html(&self, html: &str, selector: &str) -> Result<String> {
         let tab = self.new_tab().await?;
@@ -112,7 +131,7 @@ impl Browser {
     }
 
     /**
-    Advanced version: Capture a screenshot of an HTML element with additional options
+    Advanced version: Capture a screenshot of an HTML element with additional options.
 
     # Arguments
     - `html`: The HTML content
@@ -168,9 +187,8 @@ impl Browser {
 
     This will kill the browser process and clean up temporary files.
 
-    Normally, this method does not need to be called manually.
-
-    Because it will be called automatically when the `Browser` instance is destroyed.
+    Normally, this method does not need to be called manually,
+    because it will be called automatically when the `Browser` instance is destroyed.
 
     # Example
     ```no_run
