@@ -1,14 +1,14 @@
 [package]
 name = "cdp-html-shot"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Nawyjx <3373167460@qq.com>"]
 keywords = ["html", "screenshot", "cdp"]
 documentation = "https://docs.rs/cdp-html-shot"
 repository = "https://github.com/araea/cdp-html-shot"
+description = "A Rust library for capturing HTML screenshots using CDP."
 categories = ["multimedia::images", "asynchronous", "web-programming::websocket", "web-programming"]
-description = "A Rust library for capturing HTML screenshots using CDP (Chrome DevTools Protocol) and Tokio."
 
 [[example]]
 name = "take_shots"
@@ -17,6 +17,10 @@ path = "examples/take_shots.rs"
 [[example]]
 name = "capture_html"
 path = "examples/capture_html.rs"
+
+[[example]]
+name = "static_instance"
+path = "examples/static_instance.rs"
 
 [dependencies]
 anyhow = "1.0"

@@ -7,11 +7,11 @@
 
 <br>
 
-A Rust library for capturing HTML screenshots using CDP (Chrome DevTools Protocol) and Tokio.
+A Rust library for capturing HTML screenshots using CDP.
 
 - Auto cleanup
-- Asynchronous API
-- HTML screenshot capture
+- HTML screenshot captures
+- Asynchronous API (Tokio)
 
 ## Example
 
