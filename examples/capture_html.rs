@@ -1,7 +1,7 @@
 use std::fs;
 use base64::Engine;
 use anyhow::Result;
-use cdp_html_shot::{Browser};
+use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {

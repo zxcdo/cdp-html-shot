@@ -1,8 +1,8 @@
-use std::fs;
-use base64::Engine;
 use anyhow::Result;
+use base64::Engine;
 use cdp_html_shot::Browser;
 use shindan_maker::{ShindanClient, ShindanDomain};
+use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
 
     println!("Result title: {}", title);
 
-    let mut browser = Browser::new().await?;
+    let browser = Browser::new().await?;
     let base64 = browser.capture_html(&html_str, "#title_and_result").await?;
 
     let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;

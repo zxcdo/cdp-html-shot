@@ -1,14 +1,14 @@
 use std::panic;
 use std::sync::{Arc, Once};
 
-/// A struct that manages cleanup functions to be executed on process termination
+/// A struct that manages cleanup functions to be executed on process termination.
 pub struct ExitHook {
     cleanup_fn: Arc<dyn Fn() + Send + Sync + 'static>,
 }
 
 impl ExitHook {
     /**
-    Creates a new ExitHook with the given cleanup function
+    Creates a new ExitHook with the given cleanup function.
 
     # Arguments
 
@@ -32,7 +32,7 @@ impl ExitHook {
         }
     }
 
-    /// Registers all necessary hooks for process termination
+    /// Registers all necessary hooks for process termination.
     pub fn register(&self) -> Result<(), Box<dyn std::error::Error>> {
         static INIT: Once = Once::new();
         let cleanup_fn = Arc::clone(&self.cleanup_fn);

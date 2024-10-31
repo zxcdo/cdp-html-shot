@@ -1,6 +1,6 @@
 [package]
 name = "cdp-html-shot"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Nawyjx <3373167460@qq.com>"]
@@ -21,6 +21,7 @@ path = "examples/capture_html.rs"
 [[example]]
 name = "static_instance"
 path = "examples/static_instance.rs"
+required-features = ["atexit"]
 
 [[example]]
 name = "shindan_to_img"
@@ -46,6 +47,11 @@ tokio = { version = "1", features = ["sync", "rt", "rt-multi-thread", "macros", 
 [dev-dependencies]
 base64 = "0.22.1"
 shindan-maker = { version = "0.1", features = ["full"] }
+
+[features]
+default = []
+full = ["atexit"]
+atexit = []
 
 [package.metadata.docs.rs]
 all-features = true

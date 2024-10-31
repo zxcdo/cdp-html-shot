@@ -79,6 +79,7 @@ impl TransportActor {
                         });
 
                     let msg = Message::Text(serde_json::to_string(&command).unwrap());
+
                     self.ws_sink
                         .send(msg)
                         .await

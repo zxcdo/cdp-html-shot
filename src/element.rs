@@ -5,7 +5,7 @@ use crate::tab::Tab;
 use crate::general_utils;
 use crate::general_utils::next_id;
 
-/// Represents screenshot configuration parameters
+/// Represents screenshot configuration parameters.
 #[derive(Debug)]
 struct ScreenshotConfig {
     format: &'static str,
@@ -110,7 +110,7 @@ impl<'a> Element<'a> {
         })
     }
 
-    /// Get the box model dimensions for an element
+    /// Get the box model dimensions for an element.
     async fn get_box_model_dimensions(&self) -> Result<(f64, f64, f64, f64)> {
         let msg_id = next_id();
         let msg = json!({
@@ -141,7 +141,7 @@ impl<'a> Element<'a> {
         ))
     }
 
-    /// Take a screenshot with the given configuration
+    /// Take a screenshot with the given configuration.
     async fn take_screenshot_with_config(&self, config: ScreenshotConfig) -> Result<String> {
         let (top_left_x, top_left_y, top_right_x, bottom_left_y) =
             self.get_box_model_dimensions().await?;
@@ -159,7 +159,6 @@ impl<'a> Element<'a> {
             "captureBeyondViewport": true,
         });
 
-        // Add quality parameter only for JPEG format
         if config.format == "jpeg" {
             if let Some(quality) = config.quality {
                 params["quality"] = json!(quality);
@@ -192,7 +191,7 @@ impl<'a> Element<'a> {
         Ok(base64)
     }
 
-    /// Capture a screenshot of the element in JPEG format
+    /// Capture a screenshot of the element in JPEG format.
     pub async fn screenshot(&self) -> Result<String> {
         self.take_screenshot_with_config(ScreenshotConfig {
             format: "jpeg",
@@ -200,7 +199,7 @@ impl<'a> Element<'a> {
         }).await
     }
 
-    /// Capture a raw screenshot of the element in PNG format
+    /// Capture a raw screenshot of the element in PNG format.
     pub async fn raw_screenshot(&self) -> Result<String> {
         self.take_screenshot_with_config(ScreenshotConfig::default()).await
     }

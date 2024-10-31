@@ -73,13 +73,15 @@ mod tab;
 mod browser;
 mod element;
 mod transport;
-mod exit_hook;
 mod general_utils;
 mod transport_actor;
 mod capture_options;
+#[cfg(feature = "atexit")]
+mod exit_hook;
 
 pub use tab::Tab;
 pub use element::Element;
 pub use browser::Browser;
-pub use exit_hook::ExitHook;
 pub use capture_options::CaptureOptions;
+#[cfg(feature = "atexit")]
+pub use exit_hook::ExitHook;

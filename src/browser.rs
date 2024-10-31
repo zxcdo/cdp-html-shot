@@ -7,12 +7,12 @@ use log::error;
 use std::sync::Arc;
 use std::process::Child;
 use tokio::sync::OnceCell;
+use temp_dir::CustomTempDir;
 use anyhow::{Context, Result};
 use browser_config::BrowserConfig;
 
 use crate::tab::Tab;
 use crate::CaptureOptions;
-use temp_dir::CustomTempDir;
 use crate::transport::Transport;
 use crate::browser::browser_builder::BrowserBuilder;
 
@@ -58,7 +58,7 @@ impl Browser {
             .await
     }
 
-    /// Create browser instance with custom configuration
+    /// Create browser instance with custom configuration.
     async fn create_browser(config: BrowserConfig) -> Result<Self> {
         let mut child = browser_utils::spawn_chrome_process(&config)?;
         let ws_url = browser_utils::get_websocket_url(
@@ -270,9 +270,9 @@ impl Browser {
     Please ensure that this method is called before the program exits,
     and there should be no Browser instances in use at this time.
     */
-    pub fn close_instance() {
+    pub fn close_instance() -> Option<()> {
         unsafe {
-            BROWSER.take();
+            Arc::get_mut(&mut BROWSER.take()?)?.close().ok()
         }
     }
 }
