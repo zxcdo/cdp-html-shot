@@ -101,9 +101,12 @@ impl Browser {
     */
     pub async fn capture_html(&self, html: &str, selector: &str) -> Result<String> {
         let tab = self.new_tab().await?;
+
         tab.set_content(html).await?;
+
         let element = tab.find_element(selector).await?;
         let base64 = element.screenshot().await?;
+
         tab.close().await?;
         Ok(base64)
     }
