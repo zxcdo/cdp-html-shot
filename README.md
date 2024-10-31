@@ -1,6 +1,6 @@
 # cdp-html-shot
 
-[<img alt="github" src="https://img.shields.io/badge/github-araea/cdp_html_shot_8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/araea/cdp-html-shot)
+[<img alt="github" src="https://img.shields.io/badge/github-araea/cdp_html_shot-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/araea/cdp-html-shot)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/cdp_html_shot.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/cdp-html-shot)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-cdp_html_shot-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/cdp-html-shot)
 
@@ -24,7 +24,7 @@ cdp-html-shot = "0.1"
 ```rust
 use base64::Engine;
 use anyhow::Result;
-use cdp_html_shot::{Browser};
+use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
 ```rust
 use base64::Engine;
 use anyhow::Result;
-use cdp_html_shot::{Browser};
+use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {

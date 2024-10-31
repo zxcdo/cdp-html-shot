@@ -20,7 +20,7 @@ A Rust library for capturing HTML screenshots using CDP.
 ```rust
 use base64::Engine;
 use anyhow::Result;
-use cdp_html_shot::{Browser};
+use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -48,7 +48,7 @@ async fn main() -> Result<()> {
 ```rust
 use base64::Engine;
 use anyhow::Result;
-use cdp_html_shot::{Browser};
+use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
