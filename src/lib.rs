@@ -10,8 +10,8 @@
 A Rust library for capturing HTML screenshots using CDP.
 
 - Auto cleanup
-- HTML screenshot captures
 - Asynchronous API (Tokio)
+- HTML screenshot captures
 
 ## Example
 
