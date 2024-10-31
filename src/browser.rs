@@ -1,18 +1,26 @@
 mod browser_utils;
 mod browser_config;
+mod browser_builder;
 
+use log::error;
 use std::sync::Arc;
 use crate::tab::Tab;
 use std::process::Child;
+use tokio::sync::OnceCell;
 use anyhow::{Context, Result};
 use crate::transport::Transport;
 use browser_config::BrowserConfig;
 use crate::temp_dir::CustomTempDir;
+use crate::browser::browser_builder::BrowserBuilder;
+
+/// The global browser instance.
+static mut BROWSER: OnceCell<Arc<Browser>> = OnceCell::const_new();
 
 #[derive(Debug)]
 struct Process(pub Child, pub CustomTempDir);
 
 /// A browser instance.
+#[derive(Debug)]
 pub struct Browser {
     transport: Arc<Transport>,
     process: Process,
@@ -21,7 +29,7 @@ pub struct Browser {
 
 impl Browser {
     /**
-    Create a new browser instance.
+    Create a new browser instance with default configuration (headless).
 
     # Example
     ```no_run
@@ -36,9 +44,23 @@ impl Browser {
     ```
     */
     pub async fn new() -> Result<Self> {
-        let config = BrowserConfig::new()?;
+        BrowserBuilder::new().build().await
+    }
+
+    /// Create a new browser instance with a visible window.
+    pub async fn new_with_head() -> Result<Self> {
+        BrowserBuilder::new()
+            .headless(false)
+            .build()
+            .await
+    }
+
+    /// Create browser instance with custom configuration
+    async fn create_browser(config: BrowserConfig) -> Result<Self> {
         let mut child = browser_utils::spawn_chrome_process(&config)?;
-        let ws_url = browser_utils::get_websocket_url(child.stderr.take().context("Failed to get stderr")?).await?;
+        let ws_url = browser_utils::get_websocket_url(
+            child.stderr.take().context("Failed to get stderr")?
+        ).await?;
 
         Ok(Self {
             transport: Arc::new(Transport::new(&ws_url).await?),
@@ -99,7 +121,7 @@ impl Browser {
     /**
     Close the browser.
 
-    This will kill the browser process and cleanup temporary files.
+    This will kill the browser process and clean up temporary files.
 
     Normally, this method does not need to be called manually.
 
@@ -129,6 +151,7 @@ impl Browser {
 
         self.process.0
             .kill()
+            .and_then(|_| self.process.0.wait())
             .context("Failed to kill the browser process")?;
 
         self.process.1
@@ -139,11 +162,63 @@ impl Browser {
     }
 }
 
+impl Browser {
+    /**
+    Get the global Browser instance.
+
+    Creates a new one if it doesn't exist.
+
+    This method is thread-safe and ensures only one browser instance is created.
+
+    The browser will be automatically closed
+    when all references are dropped or when the program exits.
+
+    # Example
+    ```no_run
+    use cdp_html_shot::Browser;
+    use anyhow::Result;
+
+    #[tokio::main]
+    async fn main() -> Result<()> {
+        let browser = Browser::instance().await;
+        let tab = browser.new_tab().await?;
+
+        Browser::close_instance();
+        Ok(())
+    }
+    ```
+    */
+    pub async fn instance() -> Arc<Browser> {
+        unsafe {
+            let browser = BROWSER
+                .get_or_init(|| async {
+                    let browser = Browser::new().await.unwrap();
+                    Arc::new(browser)
+                })
+                .await;
+
+            browser.clone()
+        }
+    }
+
+    /**
+    Close the global Browser instance.
+
+    Please ensure that this method is called before the program exits,
+    and there should be no Browser instances in use at this time.
+    */
+    pub fn close_instance() {
+        unsafe {
+            BROWSER.take();
+        }
+    }
+}
+
 impl Drop for Browser {
     fn drop(&mut self) {
         if !self.is_closed {
             if let Err(e) = self.close() {
-                eprintln!("Error closing browser: {:?}", e);
+                error!("Error closing browser: {:?}", e);
             }
         }
     }

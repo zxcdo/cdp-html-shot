@@ -1,6 +1,6 @@
 [package]
 name = "cdp-html-shot"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Nawyjx <3373167460@qq.com>"]
@@ -14,10 +14,15 @@ description = "A Rust library for capturing HTML screenshots using CDP (Chrome D
 name = "take_shots"
 path = "examples/take_shots.rs"
 
+[[example]]
+name = "capture_html"
+path = "examples/capture_html.rs"
+
 [dependencies]
 anyhow = "1.0"
 log = "0.4.22"
 rand = "0.8.5"
+ctrlc = "3.4.5"
 which = "6.0.3"
 regex = "1.11.1"
 chrono = "0.4.38"
@@ -28,7 +33,7 @@ futures-util = "0.3.31"
 serde_json = "1.0.132"
 tokio-tungstenite = "0.24.0"
 serde = { version = "1.0.214", features = ["derive"] }
-tokio = { version = "1", features = ["sync", "rt", "rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["sync", "rt", "rt-multi-thread", "macros", "time"] }
 
 [dev-dependencies]
 base64 = "0.22.1"

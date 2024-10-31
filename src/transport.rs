@@ -1,6 +1,8 @@
-use anyhow::Result;
+use tokio::time;
+use time::Duration;
 use serde_json::Value;
 use futures_util::StreamExt;
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
 use serde::{Deserialize, Serialize};
@@ -13,6 +15,7 @@ pub(crate) struct Response {
     pub(crate) result: Value,
 }
 
+#[derive(Debug)]
 pub(crate) struct Transport {
     tx: mpsc::Sender<TransportMessage>,
     shutdown_tx: Option<oneshot::Sender<()>>,
@@ -43,7 +46,10 @@ impl Transport {
 
         self.tx.send(TransportMessage::Request(command, response_tx)).await?;
 
-        response_rx.await?
+        match time::timeout(Duration::from_secs(5), response_rx).await {
+            Ok(response) => response?,
+            Err(_) => Err(anyhow!("Timeout while waiting for response")),
+        }
     }
 
     pub(crate) async fn get_target_msg(&self, msg_id: usize) -> Result<TransportResponse> {
@@ -51,7 +57,10 @@ impl Transport {
 
         self.tx.send(TransportMessage::ListenTargetMessage(msg_id as u64, response_tx)).await?;
 
-        response_rx.await?
+        match time::timeout(Duration::from_secs(5), response_rx).await {
+            Ok(response) => response?,
+            Err(_) => Err(anyhow!("Timeout while waiting for response")),
+        }
     }
 
     pub(crate) fn shutdown(&mut self) {

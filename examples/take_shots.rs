@@ -1,3 +1,4 @@
+use std::fs;
 use anyhow::Result;
 use base64::Engine;
 use tokio::try_join;
@@ -10,7 +11,10 @@ async fn take_screenshot(tab: Tab, filename: &str) -> Result<()> {
     let base64 = element.screenshot().await?;
     tab.close().await?;
     let png_data = base64::prelude::BASE64_STANDARD.decode(base64)?;
-    std::fs::write(filename, png_data)?;
+
+    let dir = std::env::current_dir()?.join("cache");
+    fs::create_dir_all(&dir)?;
+    fs::write(dir.join(filename), png_data)?;
     Ok(())
 }
 

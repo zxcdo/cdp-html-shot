@@ -74,9 +74,11 @@ mod browser;
 mod element;
 mod temp_dir;
 mod transport;
+mod exit_hook;
 mod general_utils;
 mod transport_actor;
 
 pub use tab::Tab;
-pub use browser::Browser;
 pub use element::Element;
+pub use browser::Browser;
+pub use exit_hook::ExitHook;

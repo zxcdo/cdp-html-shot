@@ -8,76 +8,79 @@ use winreg::enums::HKEY_LOCAL_MACHINE;
 use anyhow::{anyhow, Context, Result};
 
 static DEFAULT_ARGS: [&str; 37] = [
-    // 1. 基础系统设置
-    "--no-sandbox",                     // 禁用沙盒模式，提高性能
-    "--no-first-run",                   // 跳过首次运行检查
-    "--no-default-browser-check",       // 跳过默认浏览器检查
-    "--no-experiments",                 // 禁用实验性功能
-    "--no-pings",                       // 禁用页面 ping
+    // System Settings
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--no-experiments",
+    "--no-pings",
 
-    // 2. 内存和缓存优化
-    "--js-flags=--max-old-space-size=8192",  // 增加 JS 堆大小
-    "--disk-cache-size=67108864",      // 64MB 缓存大小
-    "--memory-pressure-off",            // 禁用内存压力检测
-    "--aggressive-cache-discard",       // 激进的缓存丢弃策略
-    "--disable-dev-shm-usage",          // 禁用 /dev/shm 使用
+    // Memory Optimization
+    "--js-flags=--max-old-space-size=8192",  // Set JS heap to 8GB
+    "--disk-cache-size=67108864",            // 64MB cache
+    "--memory-pressure-off",
+    "--aggressive-cache-discard",
+    "--disable-dev-shm-usage",
 
-    // 3. 进程和线程优化
-    "--process-per-site",               // 每个站点使用单独进程
-    "--disable-hang-monitor",           // 禁用挂起监视器
-    "--disable-renderer-backgrounding", // 禁用渲染器后台处理
-    "--disable-background-timer-throttling", // 禁用后台计时器限制
-    "--disable-backgrounding-occluded-windows", // 禁用遮挡窗口后台处理
+    // Process Management
+    "--process-per-site",
+    "--disable-hang-monitor",
+    "--disable-renderer-backgrounding",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
 
-    // 4. 禁用非必要功能
-    "--disable-sync",                   // 禁用同步
-    "--disable-breakpad",               // 禁用崩溃报告
-    "--disable-infobars",               // 禁用信息栏
-    "--disable-extensions",             // 禁用扩展
-    "--disable-default-apps",           // 禁用默认应用
-    "--disable-notifications",          // 禁用通知
-    "--disable-popup-blocking",         // 禁用弹窗阻止
-    "--disable-prompt-on-repost",       // 禁用重新提交提示
-    "--disable-client-side-phishing-detection", // 禁用钓鱼检测
+    // Disable Optional Features
+    "--disable-sync",
+    "--disable-breakpad",
+    "--disable-infobars",
+    "--disable-extensions",
+    "--disable-default-apps",
+    "--disable-notifications",
+    "--disable-popup-blocking",
+    "--disable-prompt-on-repost",
+    "--disable-client-side-phishing-detection",
 
-    // 5. 网络优化
-    "--enable-async-dns",               // 启用异步 DNS
-    "--enable-parallel-downloading",     // 启用并行下载
-    "--ignore-certificate-errors",      // 忽略证书错误
-    "--disable-http-cache",             // 禁用 HTTP 缓存以提高速度
+    // Network Settings
+    "--enable-async-dns",
+    "--enable-parallel-downloading",
+    "--ignore-certificate-errors",
+    "--disable-http-cache",
 
-    // 6. 图形和渲染优化
-    "--force-color-profile=srgb",       // 强制使用 sRGB 颜色配置
-    "--disable-gpu",                    // 禁用 GPU 加速
-    "--disable-gpu-compositing",        // 禁用 GPU 合成
-    "--use-gl=swiftshader",            // 使用软件渲染
+    // Graphics Settings
+    "--disable-gpu",
+    "--use-gl=swiftshader",            // Use software rendering
+    "--disable-gpu-compositing",
+    "--force-color-profile=srgb",
+    "--disable-software-rasterizer",
 
-    // 7. 功能开关
+    // Feature Flags
     "--disable-features=TranslateUI,BlinkGenPropertyTrees,AudioServiceOutOfProcess",
     "--enable-features=NetworkService,NetworkServiceInProcess,CalculateNativeWinOcclusion",
 
-    // 8. 性能相关
-    "--disable-ipc-flooding-protection", // 禁用 IPC 洪水保护
-    "--no-zygote",                      // 禁用 zygote 进程
+    // Performance
+    "--disable-ipc-flooding-protection",
+    "--no-zygote",
 
-    // 9. 调试和日志
-    "--enable-logging=stderr"           // 启用 stderr 日志
+    // Logging
+    // "--enable-logging=stderr"
 ];
 
 pub(crate) struct BrowserConfig {
     debug_port: u16,
+    pub(crate) headless: bool,
     pub(crate) temp_dir: CustomTempDir,
     pub(crate) executable_path: PathBuf,
 }
 
 impl BrowserConfig {
     pub(crate) fn new() -> Result<Self> {
-        let current_dir = std::env::current_dir()?;
+        let temp_dir = std::env::current_dir()?.join("temp");
 
         Ok(Self {
+            headless: true,
             executable_path: default_executable()?,
             debug_port: get_available_port().context("Failed to get available port")?,
-            temp_dir: CustomTempDir::new(current_dir, "cdp-html-shot")
+            temp_dir: CustomTempDir::new(temp_dir, "cdp-html-shot")
                 .context("Failed to create custom temporary directory")?,
         })
     }
@@ -89,7 +92,11 @@ impl BrowserConfig {
         ];
 
         args.extend(DEFAULT_ARGS.iter().map(|s| s.to_string()));
-        args.push("--headless".to_string());
+        if !self.headless {
+            args.push("--auto-open-devtools-for-tabs".to_string());
+        } else {
+            args.push("--headless".to_string());
+        }
 
         args
     }
