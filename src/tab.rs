@@ -110,7 +110,6 @@ impl Tab {
             "params": {
                 "expression": expression,
                 "awaitPromise": true,
-                "returnByValue": true
             }
         }).to_string();
 

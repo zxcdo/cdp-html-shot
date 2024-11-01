@@ -1,6 +1,6 @@
 [package]
 name = "cdp-html-shot"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Nawyjx <3373167460@qq.com>"]
@@ -15,8 +15,8 @@ name = "take_shots"
 path = "examples/take_shots.rs"
 
 [[example]]
-name = "capture_html"
-path = "examples/capture_html.rs"
+name = "shot_html"
+path = "examples/shot_html.rs"
 
 [[example]]
 name = "static_instance"

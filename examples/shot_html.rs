@@ -5,7 +5,7 @@ use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let browser = Browser::new().await?;
+    let browser = Browser::new_with_head().await?;
 
     const HTML: &str = r#"
         <html lang="en-US">
