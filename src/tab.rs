@@ -192,13 +192,52 @@ impl Tab {
     }
     ```
     */
-   pub async fn activate(&self) -> Result<&Self> {
+    pub async fn activate(&self) -> Result<&Self> {
         let msg_id = next_id();
         let msg = json!({
             "id": msg_id,
             "method": "Target.activateTarget",
             "params": {
                 "targetId": self.target_id
+            }
+        }).to_string();
+
+        general_utils::send_and_get_msg(self.transport.clone(), msg_id, &self.session_id, msg).await?;
+
+        Ok(self)
+    }
+
+    /**
+    Navigate to a URL.
+
+    # Warning
+
+    This API does not wait for the page to load, it is only used to navigate to local HTML files,
+    which is convenient for getting font and other resources.
+
+    # Example
+    ```no_run
+    use cdp_html_shot::Browser;
+    use anyhow::Result;
+    use tokio::time;
+
+    #[tokio::main]
+    async fn main() -> Result<()> {
+        let browser = Browser::new().await?;
+        let tab = browser.new_tab().await?;
+        tab.goto("https://www.rust-lang.org/").await?;
+        time::sleep(time::Duration::from_secs(5)).await;
+        Ok(())
+    }
+    ```
+    */
+    pub async fn goto(&self, url: &str) -> Result<&Self> {
+        let msg_id = next_id();
+        let msg = json!({
+            "id": msg_id,
+            "method": "Page.navigate",
+            "params": {
+                "url": url
             }
         }).to_string();
 
