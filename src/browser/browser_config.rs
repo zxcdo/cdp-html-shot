@@ -1,10 +1,11 @@
 use std::net;
 use which::which;
-use winreg::RegKey;
 use std::path::{Path, PathBuf};
 use rand::prelude::SliceRandom;
-use winreg::enums::HKEY_LOCAL_MACHINE;
 use anyhow::{anyhow, Context, Result};
+
+#[cfg(windows)]
+use winreg::{RegKey, enums::HKEY_LOCAL_MACHINE};
 
 use crate::browser::temp_dir::CustomTempDir;
 
