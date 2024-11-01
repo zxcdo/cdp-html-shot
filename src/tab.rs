@@ -86,22 +86,33 @@ impl Tab {
     ```
     */
     pub async fn set_content(&self, content: &str) -> Result<&Self> {
-        let expression = format!(r#"
-    (async () => {{
-        document.open();
-        document.write(String.raw`{}`);
-        document.close();
+        let expression =
+            format!(
+                r#"
+            (async () => {{
+                try {{
+                    document.open();
+                    document.write(String.raw`{content}`);
+                    document.close();
 
-        return new Promise((resolve, reject) => {{
-            window.addEventListener('load', () => {{
-                requestAnimationFrame(() => {{
-                    requestAnimationFrame(() => resolve('Page loaded successfully'));
-                }});
-            }});
+                    await Promise.race([
+                        new Promise((resolve) => {{
+                            window.addEventListener('load', () => {{
+                                requestAnimationFrame(() => resolve(true));
+                            }});
+                        }}),
+                        new Promise((_, reject) => {{
+                            setTimeout(() => reject(new Error('Timeout')), 30000);
+                        }})
+                    ]);
 
-            setTimeout(() => reject('Timeout'), 30000);
-        }});
-    }})();"#, content);
+                    return 'Page loaded successfully';
+                }} catch (error) {{
+                    throw new Error(`Failed to set content: ${{error.message}}`);
+                }}
+            }})();
+            "#
+            );
 
         let msg_id = next_id();
         let msg = json!({

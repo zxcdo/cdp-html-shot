@@ -6,7 +6,7 @@ use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    const SHINDAN_ID: &str = "1223224";
+    const SHINDAN_ID: &str = "1223511";
     const USER_NAME: &str = "test_user";
 
     let client = ShindanClient::new(ShindanDomain::En)?;
