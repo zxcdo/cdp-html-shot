@@ -6,8 +6,8 @@ use std::fs;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    const SHINDAN_ID: &str = "1223511";
-    const USER_NAME: &str = "test_user";
+    const SHINDAN_ID: &str = "384482";
+    const USER_NAME: &str = "NAWYJX";
 
     let client = ShindanClient::new(ShindanDomain::En)?;
     let (html_str, title) = client
@@ -17,6 +17,7 @@ async fn main() -> Result<()> {
     println!("Result title: {}", title);
 
     let browser = Browser::new().await?;
+
     let base64 = browser.capture_html(&html_str, "#title_and_result").await?;
 
     let img_data = base64::prelude::BASE64_STANDARD.decode(base64)?;

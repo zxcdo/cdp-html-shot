@@ -86,11 +86,19 @@ impl Tab {
     ```
     */
     pub async fn set_content(&self, content: &str) -> Result<&Self> {
+        let content = match (content.contains('`'), content.contains("${")) {
+            (true, true) => &content.replace('`', "${BACKTICK}").replace("${", "$ {"),
+            (true, false) => &content.replace('`', "${BACKTICK}"),
+            (false, true) => &content.replace("${", "$ {"),
+            (false, false) => content,
+        };
+
         let expression =
             format!(
                 r#"
             (async () => {{
                 try {{
+                    const BACKTICK = '`';
                     document.open();
                     document.write(String.raw`{content}`);
                     document.close();
@@ -108,7 +116,7 @@ impl Tab {
 
                     return 'Page loaded successfully';
                 }} catch (error) {{
-                    throw new Error(`Failed to set content: ${{error.message}}`);
+                    throw new Error (`Failed to set content: ${{error.message}}`);
                 }}
             }})();
             "#
@@ -174,13 +182,11 @@ impl Tab {
         let res = general_utils::send_and_get_msg(self.transport.clone(), msg_id, &self.session_id, msg).await?;
 
         let msg = general_utils::serde_msg(&res);
-        let node_id = msg["result"]["nodeId"]
-            .as_u64()
-            .unwrap();
 
-        if node_id == 0 {
-            return Err(anyhow::anyhow!("Element not found"));
-        }
+        let node_id = match msg["result"]["nodeId"].as_u64() {
+            Some(node_id) => node_id,
+            None => return Err(anyhow::anyhow!("Element not found")),
+        };
 
         Element::new(self, node_id).await
     }

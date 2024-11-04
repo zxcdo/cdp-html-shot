@@ -47,6 +47,7 @@ impl<'a> Element<'a> {
         let res = general_utils::send_and_get_msg(parent.transport.clone(), msg_id, &parent.session_id, msg).await?;
 
         let msg = general_utils::serde_msg(&res);
+
         let node = msg["result"]
             .get("node")
             .context("Failed to get node")?;
