@@ -5,7 +5,11 @@ use cdp_html_shot::Browser;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let browser = Browser::new_with_head().await?;
+    let browser = Browser::new().await?;
+
+    // Only in headless mode
+    browser.close_init_tab().await?;
+
     let tab = browser.new_tab().await?;
 
     tab.goto("https://www.rust-lang.org/").await?;

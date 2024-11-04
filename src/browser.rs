@@ -5,6 +5,7 @@ mod browser_builder;
 
 use log::error;
 use std::sync::Arc;
+use serde_json::json;
 use std::process::Child;
 use tokio::sync::OnceCell;
 use temp_dir::CustomTempDir;
@@ -14,6 +15,8 @@ use browser_config::BrowserConfig;
 use crate::tab::Tab;
 use crate::CaptureOptions;
 use crate::transport::Transport;
+use crate::general_utils::next_id;
+use crate::transport_actor::TransportResponse;
 use crate::browser::browser_builder::BrowserBuilder;
 
 /// The global browser instance.
@@ -90,6 +93,41 @@ impl Browser {
     */
     pub async fn new_tab(&self) -> Result<Tab> {
         Tab::new(self.transport.clone()).await
+    }
+
+    /**
+    Close the initial tab created when the browser starts.
+
+    # Warning
+    Only in headless mode, otherwise it will close the entire browser.
+    */
+    pub async fn close_init_tab(&self) -> Result<()> {
+        let TransportResponse::Response(res) = self.transport.send(json!({
+            "id": next_id(),
+            "method": "Target.getTargets",
+            "params": {}
+        })).await? else { panic!() };
+
+        let target_id = res
+            .result["targetInfos"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|info| {
+                info["type"].as_str().unwrap() == "page"
+            }).unwrap()["targetId"]
+            .as_str()
+            .unwrap();
+
+        self.transport.send(json!({
+            "id": next_id(),
+            "method": "Target.closeTarget",
+            "params": {
+                "targetId": target_id
+            }
+        })).await?;
+
+        Ok(())
     }
 
     /**
@@ -256,6 +294,7 @@ impl Browser {
             let browser = BROWSER
                 .get_or_init(|| async {
                     let browser = Browser::new().await.unwrap();
+                    browser.close_init_tab().await.unwrap();
                     Arc::new(browser)
                 })
                 .await;
