@@ -1,5 +1,5 @@
-use std::fs;
 use chrono::Local;
+use std::{fs, thread};
 use rand::{thread_rng, Rng};
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
@@ -13,7 +13,6 @@ pub(crate) struct CustomTempDir {
 impl Drop for CustomTempDir {
     fn drop(&mut self) {
         if !self.is_cleaned {
-            self.is_cleaned = true;
             let _ = self.cleanup();
         }
     }
@@ -44,11 +43,11 @@ impl CustomTempDir {
             return Ok(());
         }
 
-        self.is_cleaned = true;
-        std::thread::sleep(std::time::Duration::from_secs(1));
+        thread::sleep(std::time::Duration::from_secs(1));
         fs::remove_dir_all(&self.path)
             .context("Failed to clean up temporary directory")?;
 
+        self.is_cleaned = true;
         Ok(())
     }
 }

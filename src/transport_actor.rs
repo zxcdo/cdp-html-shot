@@ -80,14 +80,15 @@ impl TransportActor {
 
                     let msg = Message::Text(serde_json::to_string(&command).unwrap());
 
-                    self.ws_sink
+                    let  _ = self.ws_sink
                         .send(msg)
                         .await
-                        .unwrap();
-                    self.ws_sink
+                        .is_ok();
+
+                    let  _ = self.ws_sink
                         .close()
                         .await
-                        .unwrap();
+                        .is_ok();
 
                     break
                 }

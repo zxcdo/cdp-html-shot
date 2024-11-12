@@ -250,6 +250,8 @@ impl Browser {
             .unwrap()
             .shutdown();
 
+        std::thread::sleep(std::time::Duration::from_secs(1));
+
         self.process.0
             .kill()
             .and_then(|_| self.process.0.wait())
