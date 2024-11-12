@@ -4,6 +4,7 @@ mod browser_config;
 mod browser_builder;
 
 use log::error;
+use std::thread;
 use std::sync::Arc;
 use serde_json::json;
 use std::process::Child;
@@ -250,7 +251,7 @@ impl Browser {
             .unwrap()
             .shutdown();
 
-        std::thread::sleep(std::time::Duration::from_secs(1));
+        thread::sleep(std::time::Duration::from_secs(1));
 
         self.process.0
             .kill()
