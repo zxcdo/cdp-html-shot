@@ -1,8 +1,8 @@
+use std::fs;
 use chrono::Local;
-use std::{fs, thread};
 use rand::{thread_rng, Rng};
-use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+use anyhow::{Context, Result};
 
 #[derive(Debug)]
 pub(crate) struct CustomTempDir {
@@ -43,7 +43,6 @@ impl CustomTempDir {
             return Ok(());
         }
 
-        thread::sleep(std::time::Duration::from_secs(1));
         fs::remove_dir_all(&self.path)
             .context("Failed to clean up temporary directory")?;
 
