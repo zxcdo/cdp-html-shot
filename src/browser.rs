@@ -33,6 +33,9 @@ pub struct Browser {
     is_closed: bool,
 }
 
+unsafe impl Send for Browser {}
+unsafe impl Sync for Browser {}
+
 impl Browser {
     /**
     Create a new browser instance with default configuration (headless).

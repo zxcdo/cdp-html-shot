@@ -26,6 +26,9 @@ pub(crate) struct Transport {
     wait_shutdown_rx: std_mpsc::Receiver<i32>,
 }
 
+unsafe impl Send for Transport {}
+unsafe impl Sync for Transport {}
+
 impl Transport {
     pub(crate) async fn new(ws_url: &str) -> Result<Self> {
         let (ws_stream, _) = connect_async(ws_url).await?;
