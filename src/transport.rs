@@ -3,10 +3,13 @@ use time::Duration;
 use serde_json::Value;
 use futures_util::StreamExt;
 use anyhow::{anyhow, Result};
-use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
 use serde::{Deserialize, Serialize};
 use tokio_tungstenite::connect_async;
+use std::{
+    collections::HashMap,
+    sync::mpsc as std_mpsc,
+};
 
 use crate::transport_actor::{TransportActor, TransportMessage, TransportResponse};
 
@@ -20,6 +23,7 @@ pub(crate) struct Response {
 pub(crate) struct Transport {
     tx: mpsc::Sender<TransportMessage>,
     shutdown_tx: Option<oneshot::Sender<()>>,
+    wait_shutdown_rx: std_mpsc::Receiver<i32>,
 }
 
 impl Transport {
@@ -29,17 +33,19 @@ impl Transport {
 
         let (tx, rx) = mpsc::channel::<TransportMessage>(100);
         let (shutdown_tx, shutdown_rx) = oneshot::channel();
+        let (wait_shutdown_tx, wait_shutdown_rx) = std_mpsc::channel::<i32>();
 
         let actor = TransportActor {
             pending_requests: HashMap::new(),
             ws_sink,
             command_rx: rx,
             shutdown_rx,
+            wait_shutdown_tx,
         };
 
         tokio::spawn(actor.run(ws_stream));
 
-        Ok(Self { tx, shutdown_tx: Some(shutdown_tx) })
+        Ok(Self { tx, shutdown_tx: Some(shutdown_tx), wait_shutdown_rx })
     }
 
     pub(crate) async fn send(&self, command: Value) -> Result<TransportResponse> {
@@ -70,5 +76,7 @@ impl Transport {
             .unwrap()
             .send(())
             .unwrap();
+
+        let _ = self.wait_shutdown_rx.recv().unwrap();
     }
 }

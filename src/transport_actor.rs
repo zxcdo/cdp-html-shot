@@ -1,16 +1,20 @@
 use tokio::net::TcpStream;
 use anyhow::{anyhow, Result};
-use std::collections::HashMap;
 use serde_json::{json, Value};
 use tokio::sync::{mpsc, oneshot};
 use serde::{Deserialize, Serialize};
 use futures_util::{SinkExt, StreamExt};
 use futures_util::stream::{SplitSink, SplitStream};
+use std::{
+    collections::HashMap,
+    sync::mpsc as std_mpsc,
+};
 use tokio_tungstenite::{
     MaybeTlsStream,
     WebSocketStream,
     tungstenite::Message,
 };
+
 
 use crate::general_utils;
 use crate::transport::Response;
@@ -33,6 +37,7 @@ pub(crate) struct TransportActor {
     pub(crate) ws_sink: SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
     pub(crate) command_rx: mpsc::Receiver<TransportMessage>,
     pub(crate) shutdown_rx: oneshot::Receiver<()>,
+    pub(crate) wait_shutdown_tx: std_mpsc::Sender<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -98,6 +103,8 @@ impl TransportActor {
         }
 
         self.cleanup().await;
+
+        self.wait_shutdown_tx.send(1).unwrap();
     }
 
     async fn handle_req(

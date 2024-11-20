@@ -1,6 +1,6 @@
 [package]
 name = "cdp-html-shot"
-version = "0.1.17"
+version = "0.1.18"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 authors = ["Nawyjx <3373167460@qq.com>"]
@@ -39,10 +39,10 @@ ctrlc = "3.4.5"
 which = "7.0"
 regex = "1.11.1"
 chrono = "0.4.38"
+serde_json = "1.0"
 futures = "0.3.31"
 tempfile = "3.14.0"
 futures-util = "0.3.31"
-serde_json = "1.0.132"
 tokio-tungstenite = "0.24.0"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1", features = ["sync", "rt", "rt-multi-thread", "macros", "time"] }
