@@ -74,11 +74,13 @@ impl Transport {
     }
 
     pub(crate) fn shutdown(&mut self) {
-        self.shutdown_tx
-            .take()
-            .unwrap()
-            .send(())
-            .unwrap();
+        {
+            self.shutdown_tx
+                .take()
+                .unwrap()
+                .send(())
+                .unwrap();
+        }
 
         let _ = self.wait_shutdown_rx.recv().unwrap();
     }
