@@ -96,6 +96,7 @@ impl TransportActor {
                         .is_ok();
 
                     self.wait_shutdown_tx.send(1).unwrap();
+                    drop(self.wait_shutdown_tx);
 
                     break
                 }

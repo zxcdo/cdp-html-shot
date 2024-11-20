@@ -82,6 +82,6 @@ impl Transport {
                 .unwrap();
         }
 
-        let _ = self.wait_shutdown_rx.recv().unwrap();
+        let _ = self.wait_shutdown_rx.recv().ok();
     }
 }
