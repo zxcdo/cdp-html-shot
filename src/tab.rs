@@ -93,34 +93,76 @@ impl Tab {
             (false, false) => content,
         };
 
-        let expression =
-            format!(
-                r#"
-            (async () => {{
-                try {{
-                    const BACKTICK = '`';
-                    document.open();
-                    document.write(String.raw`{content}`);
-                    document.close();
+        let expression = format!(
+            r#"
+    (async () => {{
+        try {{
+            const BACKTICK = '`';
+            document.open();
+            document.write(String.raw`{content}`);
+            document.close();
 
-                    await Promise.race([
-                        new Promise((resolve) => {{
-                            window.addEventListener('load', () => {{
-                                requestAnimationFrame(() => resolve(true));
+            await Promise.race([
+                new Promise((resolve) => {{
+                    const checkResources = async () => {{
+                        if (document.readyState !== 'complete') {{
+                            return false;
+                        }}
+
+                        const images = Array.from(document.images);
+                        const imagePromises = images.map(img => {{
+                            if (img.complete) return Promise.resolve();
+                            return new Promise(resolve => {{
+                                img.onload = resolve;
+                                img.onerror = resolve;
                             }});
-                        }}),
-                        new Promise((_, reject) => {{
-                            setTimeout(() => reject(new Error('Timeout')), 30000);
-                        }})
-                    ]);
+                        }});
 
-                    return 'Page loaded successfully';
-                }} catch (error) {{
-                    throw new Error (`Failed to set content: ${{error.message}}`);
-                }}
-            }})();
-            "#
-            );
+                        const styleSheets = Array.from(document.styleSheets);
+                        const stylePromises = styleSheets.map(sheet => {{
+                            if (!sheet.href) return Promise.resolve();
+                            return new Promise(resolve => {{
+                                const link = document.querySelector(`link[href="${{sheet.href}}"]`);
+                                if (link.sheet) resolve();
+                                else {{
+                                    link.onload = resolve;
+                                    link.onerror = resolve;
+                                }}
+                            }});
+                        }});
+
+                        await Promise.all([...imagePromises, ...stylePromises]);
+
+                        return new Promise(resolve => {{
+                            requestAnimationFrame(() => {{
+                                requestAnimationFrame(resolve);
+                            }});
+                        }});
+                    }};
+
+                    checkResources().then(resolved => {{
+                        if (!resolved) {{
+                            window.addEventListener('load', () => {{
+                                checkResources().then(resolve);
+                            }});
+                        }} else {{
+                            resolve(true);
+                        }}
+                    }});
+                }}),
+
+                new Promise((_, reject) => {{
+                    setTimeout(() => reject(new Error('Timeout')), 30000);
+                }})
+            ]);
+
+            return 'Page loaded successfully';
+        }} catch (error) {{
+            throw new Error(`Failed to set content: ${{error.message}}`);
+        }}
+    }})();
+    "#
+        );
 
         let msg_id = next_id();
         let msg = json!({

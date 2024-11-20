@@ -8,10 +8,38 @@ use serde::{Deserialize, Serialize};
 use tokio_tungstenite::connect_async;
 use std::{
     collections::HashMap,
-    sync::mpsc as std_mpsc,
+    sync::{Arc, Condvar, Mutex},
 };
 
 use crate::transport_actor::{TransportActor, TransportMessage, TransportResponse};
+
+#[derive(Debug)]
+pub(crate) struct ShutdownSignal {
+    shutdown: Mutex<bool>,
+    condvar: Condvar,
+}
+
+impl ShutdownSignal {
+    fn new() -> Self {
+        ShutdownSignal {
+            shutdown: Mutex::new(false),
+            condvar: Condvar::new(),
+        }
+    }
+
+    fn wait(&self) {
+        let mut shutdown = self.shutdown.lock().unwrap();
+        while !*shutdown {
+            shutdown = self.condvar.wait(shutdown).unwrap();
+        }
+    }
+
+    pub(crate) fn signal_shutdown(&self) {
+        let mut shutdown = self.shutdown.lock().unwrap();
+        *shutdown = true;
+        self.condvar.notify_all();
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct Response {
@@ -23,7 +51,7 @@ pub(crate) struct Response {
 pub(crate) struct Transport {
     tx: mpsc::Sender<TransportMessage>,
     shutdown_tx: Option<oneshot::Sender<()>>,
-    wait_shutdown_rx: std_mpsc::Receiver<i32>,
+    shutdown_signal: Arc<ShutdownSignal>,
 }
 
 unsafe impl Send for Transport {}
@@ -36,19 +64,20 @@ impl Transport {
 
         let (tx, rx) = mpsc::channel::<TransportMessage>(100);
         let (shutdown_tx, shutdown_rx) = oneshot::channel();
-        let (wait_shutdown_tx, wait_shutdown_rx) = std_mpsc::channel::<i32>();
+        let signal = Arc::new(ShutdownSignal::new());
+        let signal_clone = signal.clone();
 
         let actor = TransportActor {
             pending_requests: HashMap::new(),
             ws_sink,
             command_rx: rx,
             shutdown_rx,
-            wait_shutdown_tx,
+            shutdown_signal: signal_clone,
         };
 
         tokio::spawn(actor.run(ws_stream));
 
-        Ok(Self { tx, shutdown_tx: Some(shutdown_tx), wait_shutdown_rx })
+        Ok(Self { tx, shutdown_tx: Some(shutdown_tx), shutdown_signal: signal })
     }
 
     pub(crate) async fn send(&self, command: Value) -> Result<TransportResponse> {
@@ -74,14 +103,12 @@ impl Transport {
     }
 
     pub(crate) fn shutdown(&mut self) {
-        {
-            self.shutdown_tx
-                .take()
-                .unwrap()
-                .send(())
-                .unwrap();
-        }
+        self.shutdown_tx
+            .take()
+            .unwrap()
+            .send(())
+            .unwrap();
 
-        let _ = self.wait_shutdown_rx.recv().ok();
+        self.shutdown_signal.wait();
     }
 }

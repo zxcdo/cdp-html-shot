@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use futures_util::{SinkExt, StreamExt};
 use futures_util::stream::{SplitSink, SplitStream};
 use std::{
+    sync::Arc,
     collections::HashMap,
-    sync::mpsc as std_mpsc,
 };
 use tokio_tungstenite::{
     MaybeTlsStream,
@@ -17,8 +17,8 @@ use tokio_tungstenite::{
 
 
 use crate::general_utils;
-use crate::transport::Response;
 use crate::general_utils::next_id;
+use crate::transport::{Response, ShutdownSignal};
 
 #[derive(Debug)]
 pub(crate) enum TransportMessage {
@@ -37,7 +37,7 @@ pub(crate) struct TransportActor {
     pub(crate) ws_sink: SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
     pub(crate) command_rx: mpsc::Receiver<TransportMessage>,
     pub(crate) shutdown_rx: oneshot::Receiver<()>,
-    pub(crate) wait_shutdown_tx: std_mpsc::Sender<i32>,
+    pub(crate) shutdown_signal: Arc<ShutdownSignal>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -95,7 +95,7 @@ impl TransportActor {
                         .await
                         .is_ok();
 
-                    self.wait_shutdown_tx.send(1).unwrap();
+                    self.shutdown_signal.signal_shutdown();
 
                     break
                 }
@@ -105,8 +105,6 @@ impl TransportActor {
         }
 
         self.cleanup().await;
-
-        drop(self.wait_shutdown_tx);
     }
 
     async fn handle_req(
