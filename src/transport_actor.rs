@@ -96,7 +96,6 @@ impl TransportActor {
                         .is_ok();
 
                     self.wait_shutdown_tx.send(1).unwrap();
-                    drop(self.wait_shutdown_tx);
 
                     break
                 }
@@ -106,6 +105,8 @@ impl TransportActor {
         }
 
         self.cleanup().await;
+
+        drop(self.wait_shutdown_tx);
     }
 
     async fn handle_req(
