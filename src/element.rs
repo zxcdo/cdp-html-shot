@@ -8,8 +8,8 @@ use crate::general_utils::next_id;
 /// Represents screenshot configuration parameters.
 #[derive(Debug)]
 pub struct ScreenshotConfig {
-    format: &'static str,
-    quality: Option<u8>,
+    pub format: &'static str,
+    pub quality: Option<u8>,
 }
 
 impl Default for ScreenshotConfig {
