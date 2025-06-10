@@ -81,6 +81,7 @@ mod exit_hook;
 
 pub use tab::Tab;
 pub use element::Element;
+pub use element::ScreenshotConfig;
 pub use browser::Browser;
 pub use capture_options::CaptureOptions;
 #[cfg(feature = "atexit")]
