@@ -7,7 +7,7 @@ use crate::general_utils::next_id;
 
 /// Represents screenshot configuration parameters.
 #[derive(Debug)]
-struct ScreenshotConfig {
+pub struct ScreenshotConfig {
     format: &'static str,
     quality: Option<u8>,
 }
@@ -143,7 +143,7 @@ impl<'a> Element<'a> {
     }
 
     /// Take a screenshot with the given configuration.
-    async fn take_screenshot_with_config(&self, config: ScreenshotConfig) -> Result<String> {
+    pub async fn take_screenshot_with_config(&self, config: ScreenshotConfig) -> Result<String> {
         let (top_left_x, top_left_y, top_right_x, bottom_left_y) =
             self.get_box_model_dimensions().await?;
 
